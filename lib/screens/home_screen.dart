@@ -267,13 +267,21 @@ Future<Map<String, dynamic>> _loadHealthData() async {
             if (snap.hasError) {
               return Center(child: Text('Error: ${snap.error}'));
             }
-            final data            = snap.data!;
-            final statuses        = data['statuses'] as List<PlantStatus>;
-            final wasChecked      = data['checked']     as bool;
-            final wasStreakClaimed= data['streakClaimed'] as bool;
+            final data = snap.data!;
+            final hasData = data['hasData'] as bool? ?? false;
+
+            final statuses = hasData
+                ? data['statuses'] as List<PlantStatus>
+                : null;
+            final wasChecked = hasData && data.containsKey('checked')
+                ? data['checked'] as bool
+                : false;
+            final wasStreakClaimed = hasData && data.containsKey('streakClaimed')
+                ? data['streakClaimed'] as bool
+                : false;
 
             return HealthPane(
-              statuses:      statuses,
+              statuses: statuses,
               statusChecked: wasChecked,
               streakClaimed: wasStreakClaimed,
               onAllRevealed: () async {

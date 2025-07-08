@@ -1,6 +1,5 @@
 import 'dart:math' show pi;
 import 'package:flutter/material.dart';
-import 'empty_card.dart';  
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:confetti/confetti.dart';
 import 'package:vibration/vibration.dart';
