@@ -23,17 +23,33 @@ class _StartSetupScreenState extends State<StartSetupScreen> {
 
   Future<void> _loadDevice() async {
     final auth = AuthService();
-    _deviceId  = await auth.currentDeviceId();   // <- key set after claim
-    if (mounted) {
-      setState(() => _busy = false);
-      if (_deviceId != null) {
-        // we already have a claimed device → skip QR, go to photo
-        Navigator.pushReplacementNamed(
-          context,
-          Routes.plantPhoto,
-          arguments: _deviceId,
-        );
-      }
+    final status = await auth.onboardingStatus();
+    _deviceId = status['device_id'] as String?;
+
+    if (!mounted) return;
+
+    setState(() => _busy = false);
+
+    switch (status['step']) {
+      case 'photo':
+        if (_deviceId != null) {
+          Navigator.pushReplacementNamed(
+            context,
+            Routes.plantPhoto,
+            arguments: _deviceId,
+          );
+        }
+        break;
+      case 'wifi':
+        Navigator.pushReplacementNamed(context, Routes.connectWifi);
+        break;
+      case 'done':
+        Navigator.pushReplacementNamed(context, Routes.home);
+        break;
+      case 'claim':
+      default:
+        // stay on this screen
+        break;
     }
   }
 

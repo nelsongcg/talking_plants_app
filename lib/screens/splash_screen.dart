@@ -21,13 +21,22 @@ class _SplashScreenState extends State<SplashScreen> {
 
     try {
       // ── optional 5-s timeout so we never hang forever ──
-      await Future.any([
+      final result = await Future.any([
         _resolveNextRoute(auth),
         Future.delayed(const Duration(seconds: 5), () => Routes.createAccount),
-      ]).then((route) {
-        if (!mounted) return;
-        Navigator.pushReplacementNamed(context, route as String);
-      });
+      ]);
+
+      if (!mounted) return;
+      if (result is Map) {
+        Navigator.pushReplacementNamed(
+          context,
+          result['route'] as String,
+          arguments: result['arg'],
+        );
+      } else {
+        Navigator.pushReplacementNamed(context, result as String);
+      }
+
     } catch (e) {
       // network or parsing error → fall back to Create-Account
       if (mounted) {
@@ -38,10 +47,22 @@ class _SplashScreenState extends State<SplashScreen> {
     }
   }
 
-  Future<String> _resolveNextRoute(AuthService auth) async {
-    if (await auth.isDeviceSynced()) return Routes.home;
-    final hasJwt = await auth.hasJwt();
-    return hasJwt ? Routes.startSetup : Routes.createAccount;
+  Future<dynamic> _resolveNextRoute(AuthService auth) async {
+    if (!await auth.hasJwt()) return Routes.createAccount;
+
+    final status = await auth.onboardingStatus();
+    switch (status['step']) {
+      case 'claim':
+        return Routes.startSetup;
+      case 'photo':
+        return {'route': Routes.plantPhoto, 'arg': status['device_id']};
+      case 'wifi':
+        return Routes.connectWifi;
+      case 'done':
+        return Routes.home;
+      default:
+        return Routes.createAccount;
+    }
   }
 
   @override

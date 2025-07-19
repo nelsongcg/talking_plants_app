@@ -55,6 +55,27 @@ class AuthService {
 
     return (r.data['devices'] as int) > 0;
   }
+  /// Returns `{ step: String, device_id: String? }` describing the user's
+  /// onboarding progress. Caches the device_id when present.
+  Future<Map<String, dynamic>> onboardingStatus() async {
+    final token = await _jwt;
+    if (token == null) {
+      return {'step': 'claim', 'device_id': null};
+    }
+
+    final r = await dio.get(
+      '/api/user/onboarding',
+      options: Options(headers: {'Authorization': 'Bearer $token'}),
+    );
+    if (r.statusCode != 200) throw _dioError(r);
+
+    final step = r.data['step'] as String;
+    final deviceId = r.data['device_id'] as String?;
+    if (deviceId != null) {
+      await _storage.write(key: 'currentDevice', value: deviceId);
+    }
+    return {'step': step, 'device_id': deviceId};
+  }
 
   /* ───────────────── DEVICE CLAIM FLOW ─────────────── */
   Future<void> claimPendingDevice() async {
