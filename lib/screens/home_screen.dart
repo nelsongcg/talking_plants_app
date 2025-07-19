@@ -94,8 +94,14 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Fetches the last‐30‐days readings via PlantService,
   /// then converts into { series, dateLabels } with ChartDataConverter.
   Future<Map<String, dynamic>> _loadChartData() async {
-    final readings = await PlantService.fetchLast30DaysReadings();
-    return ChartDataConverter.toSeriesWithDates(readings);
+    try {
+      final readings = await PlantService.fetchLast30DaysReadings();
+      return ChartDataConverter.toSeriesWithDates(readings);
+    } catch (e) {
+      debugPrint('⚠️ Could not load chart data: $e');
+      // return empty data so UI can show placeholder instead of an error
+      return ChartDataConverter.toSeriesWithDates([]);
+    }
   }
 
   @override
@@ -150,7 +156,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
 /// Fetches statuses, checked flag, and streakClaimed
 Future<Map<String, dynamic>> _loadHealthData() async {
-  final data = await PlantService.fetchLatestMood();
+  Map<String, dynamic> data;
+  try {
+    data = await PlantService.fetchLatestMood();
+  } catch (e) {
+    debugPrint('⚠️ Could not load health data: $e');
+    return {'hasData': false};
+  }
   
 
   // ── 1) Is there any payload at all?
@@ -318,7 +330,7 @@ Future<Map<String, dynamic>> _loadHealthData() async {
         final dateLabels = data['dateLabels'] as List<String>;
 
         if (series.isEmpty || series.first.isEmpty) {
-          return const Center(child: Text('No data available.'));
+          return const Center(child: Text('No data to display yet'));
         }
 
         return Padding(

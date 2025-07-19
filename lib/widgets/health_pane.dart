@@ -122,7 +122,7 @@ class _HealthPaneState extends State<HealthPane> with TickerProviderStateMixin {
     if (widget.statuses == null || widget.statuses!.isEmpty) {
       return Center(
         child: Text(
-          'Wait for 24 hours',
+          'No data to display yet',
           style: Theme.of(context).textTheme.bodyMedium,
         ),
       );

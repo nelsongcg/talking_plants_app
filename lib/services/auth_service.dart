@@ -103,6 +103,7 @@ class AuthService {
 
     if (r.statusCode == 201) {
       await _storage.write(key: 'currentDevice', value: deviceId);
+      await _storage.write(key: 'deviceForWiFi', value: '$deviceId,$token');
       debugPrint('✅ claimed $deviceId');
     } else {
       debugPrint('❌ claim failed $deviceId  -> ${r.statusCode}');

@@ -126,12 +126,14 @@ Future<void> _provision() async {
   setState(() => _busy = true);
   try {
     // ①  Provision the module over BLE
-    await _prov.provisionWifi(
-      _selectedDevice,
-      _popCtl.text.trim(),
-      ssid,
-      _pwdCtl.text.trim(),
-    );
+    await _prov
+        .provisionWifi(
+          _selectedDevice,
+          _popCtl.text.trim(),
+          ssid,
+          _pwdCtl.text.trim(),
+        )
+        .timeout(const Duration(seconds: 30));
 
     // ②  Read device_id & claim_token that the QR screen saved
     final secure  = const FlutterSecureStorage();
@@ -156,6 +158,8 @@ Future<void> _provision() async {
     if (mounted) {
       Navigator.pushReplacementNamed(context, Routes.avatarReveal);
     }
+      } on TimeoutException {
+    _snack('Connection failed – check Wi-Fi name and password.');
   } catch (e) {
     _snack('Provisioning failed: $e');
   } finally {
