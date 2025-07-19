@@ -110,6 +110,28 @@ app.get('/api/user/status', async (req, res) => {
   res.json(r);
 });
 
+/* ---------- user onboarding status ---------- */
+app.get('/api/user/onboarding', async (req, res) => {
+  const [rows] = await pool.query(
+    'SELECT device_id, plant_id, device_synced FROM caretaker WHERE user_id=? ORDER BY id DESC LIMIT 1',
+    [req.user.sub]
+  );
+
+  if (rows.length === 0) {
+    return res.json({ step: 'claim' });
+  }
+
+  const ck = rows[0];
+  let step = 'done';
+  if (!ck.plant_id) {
+    step = 'photo';
+  } else if (ck.device_synced === 0) {
+    step = 'wifi';
+  }
+
+  res.json({ step, device_id: ck.device_id });
+});
+
 /* ---------- plant master search ---------- */
 app.get('/api/plants', async (req, res) => {
   const q     = (req.query.q || '').toString().trim();
@@ -253,6 +275,27 @@ app.post('/device/online', async (req, res) => {
 
     await conn.query('UPDATE devices SET claimed=1, online=1 WHERE id=?', [device_id]);
     await conn.query('UPDATE caretaker SET device_synced=1 WHERE device_id=?', [device_id]);
+
+    // fetch caretaker info so we can insert the initial personality row
+    const [[ck]] = await conn.query(
+      `SELECT plant_id, plant_type, personality_default
+         FROM caretaker
+        WHERE device_id = ?
+        LIMIT 1 FOR UPDATE`,
+      [device_id]
+    );
+
+    if (ck && ck.plant_id) {
+      await conn.query(
+        `INSERT INTO personality_evolution
+            (device_id, plant_id, personality_description, plant_type, personality_params, current_mood, sensor_readings)
+         VALUES (?, ?, ?, ?,'{}', '{}', '{}')`,
+        [device_id, ck.plant_id, ck.personality_default, ck.plant_type]
+      );
+    }
+
+
+
     await conn.commit();
     res.json({ ok:true });
   } catch (err) {
