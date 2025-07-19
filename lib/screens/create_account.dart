@@ -119,12 +119,27 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
       }
 
       // ── STEP 4: decide next screen ───────────────────────────────────
-      final next = await auth.isDeviceSynced()
-          ? Routes.home
-          : Routes.startSetup;
+      final status = await auth.onboardingStatus();
+      String route;
+      Object? arg;
+      switch (status['step']) {
+        case 'photo':
+          route = Routes.plantPhoto;
+          arg   = status['device_id'];
+          break;
+        case 'wifi':
+          route = Routes.connectWifi;
+          break;
+        case 'done':
+          route = Routes.home;
+          break;
+        case 'claim':
+        default:
+          route = Routes.startSetup;
+      }
 
       if (mounted) {
-        Navigator.pushReplacementNamed(context, next);
+        Navigator.pushReplacementNamed(context, route, arguments: arg);
       }
     } catch (e, st) {
       debugPrintStack(label: e.toString(), stackTrace: st);
