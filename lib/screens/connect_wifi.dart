@@ -115,6 +115,7 @@ class _ConnectWifiScreenState extends State<ConnectWifiScreen> {
     }
   }
 
+
   // ───────────────────────────── Provisioning ─────────────────────────
 Future<void> _provision() async {
   final ssid = _selectedSsid.isNotEmpty
@@ -125,8 +126,8 @@ Future<void> _provision() async {
 
   setState(() => _busy = true);
   try {
-    // ①  Provision the module over BLE
-    await _prov
+    // ①  Provision the module over BLE (returns true on success)
+    final connected = await _prov
         .provisionWifi(
           _selectedDevice,
           _popCtl.text.trim(),
@@ -134,6 +135,7 @@ Future<void> _provision() async {
           _pwdCtl.text.trim(),
         )
         .timeout(const Duration(seconds: 30));
+    if (connected != true) throw TimeoutException('wifi');
 
     // ②  Read device_id & claim_token that the QR screen saved
     final secure  = const FlutterSecureStorage();
@@ -160,12 +162,26 @@ Future<void> _provision() async {
     }
       } on TimeoutException {
     _snack('Connection failed – check Wi-Fi name and password.');
+    await _resetProvision();
   } catch (e) {
     _snack('Provisioning failed: $e');
+    await _resetProvision();
   } finally {
     if (mounted) setState(() => _busy = false);
   }
 }
+
+  // ────────────────── helper to clear state & restart BLE scan ────────────
+  Future<void> _resetProvision() async {
+    setState(() {
+      _selectedDevice = '';
+      _networks.clear();
+      _busy = false;
+    });
+    // kick off a new BLE scan so the device re-appears
+    await _startBleScan();
+  }
+
 
   // ───────────────────────────── UI / build ───────────────────────────
   @override
