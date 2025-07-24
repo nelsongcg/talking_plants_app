@@ -189,7 +189,9 @@ Future<void> _provision() async {
     final cs = Theme.of(context).colorScheme;
     final ts = Theme.of(context).textTheme;
 
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
       backgroundColor: cs.background,
       appBar: AppBar(title: const Text('Connect ITTP')),
       body: SafeArea(
@@ -295,7 +297,8 @@ Future<void> _provision() async {
           ),
         ),
       ),
-    );
+    ),
+  );
   }
 
   // helper

@@ -15,7 +15,9 @@ class PlaceDeviceScreen extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final ts = Theme.of(context).textTheme;
 
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
       backgroundColor: cs.background,
       body: SafeArea(
         child: SingleChildScrollView(
@@ -66,6 +68,7 @@ class PlaceDeviceScreen extends StatelessWidget {
           ),
         ),
       ),
-    );
+    ),
+  );
   }
 }

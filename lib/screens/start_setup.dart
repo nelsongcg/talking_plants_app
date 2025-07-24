@@ -59,18 +59,23 @@ class _StartSetupScreenState extends State<StartSetupScreen> {
     final ts = Theme.of(context).textTheme;
 
     if (_busy) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+      return PopScope(
+        canPop: false,
+        child: const Scaffold(
+          body: Center(child: CircularProgressIndicator()),
+        ),
       );
     }
 
-    return Scaffold(
-      backgroundColor: cs.background,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
+        backgroundColor: cs.background,
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 32),
               Image.asset('assets/images/italktoplantsvertical_v2.png',
@@ -94,6 +99,7 @@ class _StartSetupScreenState extends State<StartSetupScreen> {
           ),
         ),
       ),
-    );
+    ),
+  );
   }
 }

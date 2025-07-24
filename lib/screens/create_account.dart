@@ -29,7 +29,9 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
     final ts = Theme.of(context).textTheme;
     final showPw = _emailExists != null;
 
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
       backgroundColor: cs.background,
       body: SafeArea(
         child: SingleChildScrollView(
@@ -77,7 +79,8 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
           ),
         ),
       ),
-    );
+    ),
+  );
   }
 
   String get _primaryLabel {

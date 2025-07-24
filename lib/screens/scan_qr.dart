@@ -105,7 +105,9 @@ Future<void> _onDetect(BarcodeCapture cap) async {
     final cs = Theme.of(context).colorScheme;
     final ts = Theme.of(context).textTheme;
 
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
       backgroundColor: cs.background,
       body: SafeArea(
         child: Column(
@@ -143,6 +145,7 @@ Future<void> _onDetect(BarcodeCapture cap) async {
           ],
         ),
       ),
-    );
+    ),
+  );
   }
 }
