@@ -152,7 +152,9 @@ Future<void> _upload() async {
     final cs = Theme.of(context).colorScheme;
     final ts = Theme.of(context).textTheme;
 
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
       backgroundColor: cs.background,
       body: SafeArea(
         child: SingleChildScrollView(
@@ -249,6 +251,7 @@ Future<void> _upload() async {
           ),
         ),
       ),
-    );
+    ),
+  );
   }
 }
