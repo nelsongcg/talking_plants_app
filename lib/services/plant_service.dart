@@ -192,5 +192,35 @@ class PlantService {
     }).toList();
   }
 
+  /// Fetch tutorial flags for the given device.
+  /// Returns { tutorial_onboarding_seen: int, tutorial_onboarding_eligible: int }
+  static Future<Map<String, int>> fetchTutorialFlags(String deviceId) async {
+    final jwt = await AuthService().getJwt();
+    final resp = await dio.get(
+      '/api/tutorial-flags',
+      queryParameters: {'device_id': deviceId},
+      options: Options(headers: {'Authorization': 'Bearer $jwt'}),
+    );
+    return {
+      'tutorial_onboarding_seen': resp.data['tutorial_onboarding_seen'] as int? ?? 0,
+      'tutorial_onboarding_eligible': resp.data['tutorial_onboarding_eligible'] as int? ?? 0,
+    };
+  }
+
+  /// Update tutorial flags for current user.
+  static Future<void> updateTutorialFlags(
+      String deviceId, {int? seen, int? eligible}) async {
+    final jwt = await AuthService().getJwt();
+    await dio.post(
+      '/api/tutorial-flags',
+      data: {
+        'device_id': deviceId,
+        if (seen != null) 'tutorial_onboarding_seen': seen,
+        if (eligible != null) 'tutorial_onboarding_eligible': eligible,
+      },
+      options: Options(headers: {'Authorization': 'Bearer $jwt'}),
+    );
+  }
+
  
 }
