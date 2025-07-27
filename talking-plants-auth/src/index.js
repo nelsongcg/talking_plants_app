@@ -850,6 +850,59 @@ app.get('/api/chat/history', verifyJwtMiddleware, async (req, res) => {
   }
 });
 
+/* ---------- tutorial flags ---------- */
+app.get('/api/tutorial-flags', async (req, res) => {
+  const userId   = req.user.sub;
+  const deviceId = req.query.device_id;
+  if (!deviceId) {
+    return res.status(400).json({ message: 'Missing device_id' });
+  }
+
+  try {
+    const [[row]] = await pool.query(
+      `SELECT tutorial_onboarding_seen, tutorial_onboarding_eligible
+         FROM caretaker
+        WHERE user_id=? AND device_id=?`,
+      [userId, deviceId]
+    );
+
+    const seen     = row?.tutorial_onboarding_seen ?? 1;
+    const eligible = row?.tutorial_onboarding_eligible ?? 1;
+
+    res.json({
+      tutorial_onboarding_seen: seen,
+      tutorial_onboarding_eligible: eligible,
+    });
+  } catch (err) {
+    console.error('Error fetching tutorial flags:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+app.post('/api/tutorial-flags', async (req, res) => {
+  const userId   = req.user.sub;
+  const { device_id, tutorial_onboarding_seen, tutorial_onboarding_eligible } =
+    req.body || {};
+
+  if (!device_id) {
+    return res.status(400).json({ message: 'Missing device_id' });
+  }
+
+  try {
+    await pool.query(
+      `UPDATE caretaker
+          SET tutorial_onboarding_seen     = COALESCE(?, tutorial_onboarding_seen),
+              tutorial_onboarding_eligible = COALESCE(?, tutorial_onboarding_eligible)
+        WHERE user_id = ? AND device_id = ?`,
+      [tutorial_onboarding_seen, tutorial_onboarding_eligible, userId, device_id]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error updating tutorial flags:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 
 
 
