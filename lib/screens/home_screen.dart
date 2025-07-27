@@ -145,9 +145,13 @@ class _HomeScreenState extends State<HomeScreen> {
           alignment: Alignment.center,
           padding: const EdgeInsets.all(24),
           child: const Text(
-            'Let us give you a tour of of the main functionalities of the app',
+            'Let us give you a tour of the main functionalities of the app',
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.white, fontSize: 20),
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              decoration: TextDecoration.none,
+            ),
           ),
         ),
       ),
@@ -157,7 +161,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _startCoachMarks() {
-    final textStyle = const TextStyle(color: Colors.white);
+    final textStyle = const TextStyle(
+      color: Colors.white,
+      decoration: TextDecoration.none,
+    );
     final targets = [
       TargetFocus(
         keyTarget: _chatBtnKey,
@@ -173,7 +180,7 @@ class _HomeScreenState extends State<HomeScreen> {
         contents: [
           TargetContent(
             align: ContentAlign.top,
-            child: Text("Here you can check your plants helth, it takes 24 hours for the data to start to be displayed.", style: textStyle),
+            child: Text("Here you can check your plants health, it takes 24 hours for the data to start to be displayed.", style: textStyle),
           ),
         ],
       ),
@@ -196,6 +203,15 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       TargetFocus(
+        keyTarget: _streakKey,
+        contents: [
+          TargetContent(
+            align: ContentAlign.bottom,
+            child: Text('This your streak count, every day that you check on the wellbeing of your plant your streak inscreases. You can use your streak to exchange for gifts!', style: textStyle),
+          ),
+        ],
+      ),
+      TargetFocus(
         keyTarget: _chatPaneKey,
         paddingFocus: -20,
         shape: ShapeLightFocus.RRect,
@@ -203,16 +219,15 @@ class _HomeScreenState extends State<HomeScreen> {
         contents: [
           TargetContent(
             align: ContentAlign.top,
-            child: Text('The conversation with your plant is displayed here. Send it a message now!', style: textStyle),
-          ),
-        ],
-      ),
-      TargetFocus(
-        keyTarget: _streakKey,
-        contents: [
-          TargetContent(
-            align: ContentAlign.bottom,
-            child: Text('This your streak count, every day that you check on your the wellbeing of your plant your streak inscreases. You can use your streak to exchange for gifts!', style: textStyle),
+            child: Container(
+              alignment: Alignment.topCenter,
+              margin: const EdgeInsets.only(top: 8),
+              child: Text(
+                'The conversation with your plant is displayed here. Send it a message now!',
+                style: textStyle,
+                textAlign: TextAlign.center,
+              ),
+            ),
           ),
         ],
       ),
