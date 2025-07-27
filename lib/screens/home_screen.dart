@@ -132,14 +132,38 @@ class _HomeScreenState extends State<HomeScreen> {
     await PlantService.updateTutorialFlags(_deviceId!, seen: 1);
   }
 
-  void _showTutorial() {
+  void _showTutorial() async {
+    // Show an overlay message before starting the coach marks
+    await showDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierColor: Colors.black54,
+      builder: (_) => GestureDetector(
+        onTap: () => Navigator.of(context).pop(),
+        child: Container(
+          color: Colors.transparent,
+          alignment: Alignment.center,
+          padding: const EdgeInsets.all(24),
+          child: const Text(
+            'Let us explain what each component of the app looks like',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.white, fontSize: 20),
+          ),
+        ),
+      ),
+    );
+
+    _startCoachMarks();
+  }
+
+  void _startCoachMarks() {
     final textStyle = const TextStyle(color: Colors.white);
     final targets = [
       TargetFocus(
         keyTarget: _chatBtnKey,
         contents: [
           TargetContent(
-            align: ContentAlign.bottom,
+            align: ContentAlign.top,
             child: Text('Chat with your plant here', style: textStyle),
           ),
         ],
@@ -148,7 +172,7 @@ class _HomeScreenState extends State<HomeScreen> {
         keyTarget: _healthBtnKey,
         contents: [
           TargetContent(
-            align: ContentAlign.bottom,
+            align: ContentAlign.top,
             child: Text("Check your plant's health", style: textStyle),
           ),
         ],
@@ -157,7 +181,7 @@ class _HomeScreenState extends State<HomeScreen> {
         keyTarget: _statsBtnKey,
         contents: [
           TargetContent(
-            align: ContentAlign.bottom,
+            align: ContentAlign.top,
             child: Text('See stats collected', style: textStyle),
           ),
         ],
@@ -173,9 +197,12 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       TargetFocus(
         keyTarget: _chatPaneKey,
+        paddingFocus: -20,
+        shape: ShapeLightFocus.RRect,
+        radius: 8,
         contents: [
           TargetContent(
-            align: ContentAlign.bottom,
+            align: ContentAlign.top,
             child: Text('Conversation appears here', style: textStyle),
           ),
         ],
@@ -200,16 +227,6 @@ class _HomeScreenState extends State<HomeScreen> {
         _completeTutorial();
         return true;
       },
-      skipWidget: TextButton(
-        onPressed: () {
-          _completeTutorial();
-          _coachMark?.finish();
-        },
-        child: const Text(
-          'Do not show again',
-          style: TextStyle(color: Colors.white),
-        ),
-      ),
       hideSkip: false,
       alignSkip: Alignment.bottomRight,
       onClickTarget: (target) {},
@@ -337,9 +354,9 @@ Future<Map<String, dynamic>> _loadHealthData() async {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Row(
-                key: _streakKey,
                 children: [
                   FutureBuilder<int>(
+                    key: _streakKey,
                     future: _streakFuture,
                     builder: (ctx, snap) {
                       if (snap.connectionState == ConnectionState.waiting) {
