@@ -117,8 +117,8 @@ class _HomeScreenState extends State<HomeScreen> {
     if (_deviceId == null) return;
     try {
       final flags = await PlantService.fetchTutorialFlags(_deviceId!);
-      final show = flags['tutorial_onboarding_seen'] == 1 &&
-          flags['tutorial_onboarding_eligible'] == 0;
+      final show = flags['tutorial_onboarding_seen'] == 0 &&
+          flags['tutorial_onboarding_eligible'] == 1;
       if (show && mounted) {
         WidgetsBinding.instance.addPostFrameCallback((_) => _showTutorial());
       }
@@ -133,13 +133,62 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showTutorial() {
+    final textStyle = const TextStyle(color: Colors.white);
     final targets = [
-      TargetFocus(keyTarget: _chatBtnKey, contents: [TargetContent(child: Text('Chat with your plant here'))]),
-      TargetFocus(keyTarget: _healthBtnKey, contents: [TargetContent(child: Text('Check your plant\'s health'))]),
-      TargetFocus(keyTarget: _statsBtnKey, contents: [TargetContent(child: Text('See stats collected'))]),
-      TargetFocus(keyTarget: _burgerKey, contents: [TargetContent(child: Text('Open the menu'))]),
-      TargetFocus(keyTarget: _chatPaneKey, contents: [TargetContent(child: Text('Conversation appears here'))]),
-      TargetFocus(keyTarget: _streakKey, contents: [TargetContent(child: Text('Your current streak'))]),
+      TargetFocus(
+        keyTarget: _chatBtnKey,
+        contents: [
+          TargetContent(
+            align: ContentAlign.bottom,
+            child: Text('Chat with your plant here', style: textStyle),
+          ),
+        ],
+      ),
+      TargetFocus(
+        keyTarget: _healthBtnKey,
+        contents: [
+          TargetContent(
+            align: ContentAlign.bottom,
+            child: Text("Check your plant's health", style: textStyle),
+          ),
+        ],
+      ),
+      TargetFocus(
+        keyTarget: _statsBtnKey,
+        contents: [
+          TargetContent(
+            align: ContentAlign.bottom,
+            child: Text('See stats collected', style: textStyle),
+          ),
+        ],
+      ),
+      TargetFocus(
+        keyTarget: _burgerKey,
+        contents: [
+          TargetContent(
+            align: ContentAlign.bottom,
+            child: Text('Open the menu', style: textStyle),
+          ),
+        ],
+      ),
+      TargetFocus(
+        keyTarget: _chatPaneKey,
+        contents: [
+          TargetContent(
+            align: ContentAlign.bottom,
+            child: Text('Conversation appears here', style: textStyle),
+          ),
+        ],
+      ),
+      TargetFocus(
+        keyTarget: _streakKey,
+        contents: [
+          TargetContent(
+            align: ContentAlign.bottom,
+            child: Text('Your current streak', style: textStyle),
+          ),
+        ],
+      ),
     ];
 
     _coachMark = TutorialCoachMark(
@@ -151,22 +200,18 @@ class _HomeScreenState extends State<HomeScreen> {
         _completeTutorial();
         return true;
       },
-      skipWidget: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Text('Skip'),
-          TextButton(
-            onPressed: () {
-              _completeTutorial();
-              _coachMark?.finish();
-            },
-            child: const Text('Do not show again'),
-          ),
-        ],
+      skipWidget: TextButton(
+        onPressed: () {
+          _completeTutorial();
+          _coachMark?.finish();
+        },
+        child: const Text(
+          'Do not show again',
+          style: TextStyle(color: Colors.white),
+        ),
       ),
       hideSkip: false,
       alignSkip: Alignment.bottomRight,
-      textSkip: 'Skip',
       onClickTarget: (target) {},
       onClickOverlay: (target) {},
       // onClickSkip: () {},
