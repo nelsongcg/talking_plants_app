@@ -14,6 +14,7 @@ import '../widgets/health_pane.dart';
 import '../widgets/stats_pane.dart';
 import '../widgets/bottom_nav.dart';
 import '../widgets/side_menu.dart';
+import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
 const kCream = Color(0xFFFEF1D6);
 
@@ -37,6 +38,13 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
+  final _chatBtnKey = GlobalKey();
+  final _healthBtnKey = GlobalKey();
+  final _statsBtnKey = GlobalKey();
+  final _burgerKey = GlobalKey();
+  final _chatPaneKey = GlobalKey();
+  final _streakKey = GlobalKey();
+  TutorialCoachMark? _coachMark;
   int _tab = 0;
 
   /// NEW: holds the async streak fetch
@@ -64,9 +72,10 @@ class _HomeScreenState extends State<HomeScreen> {
     final auth = AuthService();
     _deviceId = await auth.currentDeviceId();
     if (_deviceId != null) {
-    // Fire the request (and keep the Future so UI can listen)
-    _streakFuture = PlantService.fetchCurrentStreak(_deviceId!);
-    _loadChatHistory();
+      // Fire the request (and keep the Future so UI can listen)
+      _streakFuture = PlantService.fetchCurrentStreak(_deviceId!);
+      _loadChatHistory();
+      await _checkTutorial();
     }
     setState(() {});
   }
@@ -102,6 +111,66 @@ class _HomeScreenState extends State<HomeScreen> {
       // return empty data so UI can show placeholder instead of an error
       return ChartDataConverter.toSeriesWithDates([]);
     }
+  }
+
+  Future<void> _checkTutorial() async {
+    if (_deviceId == null) return;
+    try {
+      final flags = await PlantService.fetchTutorialFlags(_deviceId!);
+      final show = flags['tutorial_onboarding_eligible'] == 1 &&
+          flags['tutorial_onboarding_seen'] == 0;
+      if (show && mounted) {
+        WidgetsBinding.instance.addPostFrameCallback((_) => _showTutorial());
+      }
+    } catch (e) {
+      debugPrint('tutorial flags error: $e');
+    }
+  }
+
+  void _completeTutorial() async {
+    if (_deviceId == null) return;
+    await PlantService.updateTutorialFlags(_deviceId!, seen: 1);
+  }
+
+  void _showTutorial() {
+    final targets = [
+      TargetFocus(keyTarget: _chatBtnKey, contents: [TargetContent(child: Text('Chat with your plant here'))]),
+      TargetFocus(keyTarget: _healthBtnKey, contents: [TargetContent(child: Text('Check your plant\'s health'))]),
+      TargetFocus(keyTarget: _statsBtnKey, contents: [TargetContent(child: Text('See stats collected'))]),
+      TargetFocus(keyTarget: _burgerKey, contents: [TargetContent(child: Text('Open the menu'))]),
+      TargetFocus(keyTarget: _chatPaneKey, contents: [TargetContent(child: Text('Conversation appears here'))]),
+      TargetFocus(keyTarget: _streakKey, contents: [TargetContent(child: Text('Your current streak'))]),
+    ];
+
+    _coachMark = TutorialCoachMark(
+      targets: targets,
+      onFinish: () {
+        _completeTutorial();
+      },
+      onSkip: () {
+        _completeTutorial();
+      },
+      skipWidget: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text('Skip'),
+          TextButton(
+            onPressed: () {
+              _completeTutorial();
+              _coachMark?.finish();
+            },
+            child: const Text('Do not show again'),
+          ),
+        ],
+      ),
+      hideSkip: false,
+      alignSkip: Alignment.bottomRight,
+      textSkip: 'Skip',
+      onClickTarget: (target) {},
+      onClickOverlay: (target) {},
+      onClickSkip: () {},
+    )
+      ..show(context: context);
   }
 
   @override
@@ -215,10 +284,14 @@ Future<Map<String, dynamic>> _loadHealthData() async {
         top: false,
         child: Column(
           children: [
-            _Header(onBurgerTap: () => _scaffoldKey.currentState?.openEndDrawer()),
+            _Header(
+              onBurgerTap: () => _scaffoldKey.currentState?.openEndDrawer(),
+              burgerKey: _burgerKey,
+            ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Row(
+                key: _streakKey,
                 children: [
                   FutureBuilder<int>(
                     future: _streakFuture,
@@ -249,15 +322,21 @@ Future<Map<String, dynamic>> _loadHealthData() async {
         ),
       ),
       bottomNavigationBar:
-          BottomNav(current: _tab, onTap: (i) {
-        setState(() {
-          _tab = i;
-          // Whenever we switch to Stats (index 2), refresh the data:
-          if (_tab == 2) {
-            _chartDataFuture = _loadChartData();
-          }
-        });
-      }),
+          BottomNav(
+            current: _tab,
+            onTap: (i) {
+            setState(() {
+              _tab = i;
+              // Whenever we switch to Stats (index 2), refresh the data:
+              if (_tab == 2) {
+                _chartDataFuture = _loadChartData();
+              }
+            });
+            },
+            chatKey: _chatBtnKey,
+            healthKey: _healthBtnKey,
+            statsKey: _statsBtnKey,
+          ),
     );
   }
 
@@ -268,6 +347,7 @@ Future<Map<String, dynamic>> _loadHealthData() async {
               controller: _controller,
               onSend: _sendMessage,
               isProcessing: _sending,
+              key: _chatPaneKey,
             ),
         1 => FutureBuilder<Map<String, dynamic>>(
           future: _loadHealthData(),
@@ -344,8 +424,9 @@ Future<Map<String, dynamic>> _loadHealthData() async {
 
 // ─── HEADER widget (unchanged) ─────────────────────────────────────────
 class _Header extends StatelessWidget {
-  const _Header({required this.onBurgerTap});
+  const _Header({required this.onBurgerTap, this.burgerKey});
   final VoidCallback? onBurgerTap;
+  final Key? burgerKey;
 
   @override
   Widget build(BuildContext context) {
@@ -383,6 +464,7 @@ class _Header extends StatelessWidget {
           right: 16,
           top: MediaQuery.of(context).padding.top + 16,
           child: IconButton(
+            key: burgerKey,
             icon: SvgPicture.asset('assets/icons/burger_menu_icon.svg', height: 28),
             onPressed: onBurgerTap,
           ),

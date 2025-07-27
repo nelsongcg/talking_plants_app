@@ -4,9 +4,19 @@ import 'package:flutter_svg/flutter_svg.dart';
 const kCream = Color(0xFFFEF1D6);
 
 class BottomNav extends StatelessWidget {
-  const BottomNav({super.key, required this.current, required this.onTap});
+  const BottomNav({
+    super.key,
+    required this.current,
+    required this.onTap,
+    this.chatKey,
+    this.healthKey,
+    this.statsKey,
+  });
   final int current;
   final ValueChanged<int> onTap;
+  final Key? chatKey;
+  final Key? healthKey;
+  final Key? statsKey;
 
   static const _icons = [
     'assets/icons/chat_icon.svg',
@@ -27,6 +37,11 @@ class BottomNav extends StatelessWidget {
           children: List.generate(_icons.length, (i) {
             final active = current == i;
             return InkWell(
+              key: switch (i) {
+                0 => chatKey,
+                1 => healthKey,
+                _ => statsKey,
+              },
               onTap: () => onTap(i),
               child: Padding(
                 padding:
