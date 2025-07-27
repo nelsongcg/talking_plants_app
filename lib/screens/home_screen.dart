@@ -145,7 +145,7 @@ class _HomeScreenState extends State<HomeScreen> {
           alignment: Alignment.center,
           padding: const EdgeInsets.all(24),
           child: const Text(
-            'Let us explain what each component of the app looks like',
+            'Let us give you a tour of of the main functionalities of the app',
             textAlign: TextAlign.center,
             style: TextStyle(color: Colors.white, fontSize: 20),
           ),
@@ -164,7 +164,7 @@ class _HomeScreenState extends State<HomeScreen> {
         contents: [
           TargetContent(
             align: ContentAlign.top,
-            child: Text('Chat with your plant here', style: textStyle),
+            child: Text('You can talk to your plant here', style: textStyle),
           ),
         ],
       ),
@@ -173,7 +173,7 @@ class _HomeScreenState extends State<HomeScreen> {
         contents: [
           TargetContent(
             align: ContentAlign.top,
-            child: Text("Check your plant's health", style: textStyle),
+            child: Text("Here you can check your plants helth, it takes 24 hours for the data to start to be displayed.", style: textStyle),
           ),
         ],
       ),
@@ -182,7 +182,7 @@ class _HomeScreenState extends State<HomeScreen> {
         contents: [
           TargetContent(
             align: ContentAlign.top,
-            child: Text('See stats collected', style: textStyle),
+            child: Text('Here you can see the sensor data over the last month, it takes 24 hours for the data to start to be displayed.', style: textStyle),
           ),
         ],
       ),
@@ -191,7 +191,7 @@ class _HomeScreenState extends State<HomeScreen> {
         contents: [
           TargetContent(
             align: ContentAlign.bottom,
-            child: Text('Open the menu', style: textStyle),
+            child: Text('Use the menu for device settings, to know more about our company or to send us a message. ', style: textStyle),
           ),
         ],
       ),
@@ -203,7 +203,7 @@ class _HomeScreenState extends State<HomeScreen> {
         contents: [
           TargetContent(
             align: ContentAlign.top,
-            child: Text('Conversation appears here', style: textStyle),
+            child: Text('The conversation with your plant is displayed here. Send it a message now!', style: textStyle),
           ),
         ],
       ),
@@ -212,7 +212,7 @@ class _HomeScreenState extends State<HomeScreen> {
         contents: [
           TargetContent(
             align: ContentAlign.bottom,
-            child: Text('Your current streak', style: textStyle),
+            child: Text('This your streak count, every day that you check on your the wellbeing of your plant your streak inscreases. You can use your streak to exchange for gifts!', style: textStyle),
           ),
         ],
       ),
@@ -227,7 +227,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _completeTutorial();
         return true;
       },
-      hideSkip: false,
+      hideSkip: true,
       alignSkip: Alignment.bottomRight,
       onClickTarget: (target) {},
       onClickOverlay: (target) {},
