@@ -45,13 +45,13 @@ android/, linux/, macos/  Platform‑specific Flutter projects
 graph LR
   subgraph Client [Flutter App]
     UI[UI Screens/Widgets]
-    SVC[AuthService / PlantService (Dio)]
+    SVC[Auth + Plant Services (Dio)]
     BLE[BLE Provisioning]
   end
 
   subgraph Backend [Auth Backend (Express)]
     JWT[JWT Middleware]
-    ROUTES[/Routes: /register, /login, /devices, /api/*/]
+    ROUTES[Routes: register, login, devices, api]
     UP[Uploads (/uploads)]
     DB[(MySQL)]
   end
