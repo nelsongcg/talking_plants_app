@@ -33,6 +33,14 @@ migrate_working_dir/
 .pub/
 /build/
 
+# Backend env and uploads (security)
+talking-plants-auth/.env
+talking-plants-auth/uploads/
+
+# QR seeds and generated codes (sensitive)
+qrcodes/devices.csv
+qrcodes/qrs/*.png
+
 # Symbolication related
 app.*.symbols
 
