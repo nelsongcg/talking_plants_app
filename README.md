@@ -43,7 +43,36 @@ android/, linux/, macos/  Platform‑specific Flutter projects
 
 ```mermaid
 graph LR
-    App[Flutter App] <--> Server[Auth Backend]
+  subgraph Client [Flutter App]
+    UI[UI Screens/Widgets]
+    SVC[AuthService / PlantService (Dio)]
+    BLE[BLE Provisioning]
+  end
+
+  subgraph Backend [Auth Backend (Express)]
+    JWT[JWT Middleware]
+    ROUTES[/Routes: /register, /login, /devices, /api/*/]
+    UP[Uploads (/uploads)]
+    DB[(MySQL)]
+  end
+
+  subgraph External
+    LLM[AWS Lambda (mytalkingplant)]
+  end
+
+  subgraph Device
+    DEV[Device]
+  end
+
+  UI <---> SVC
+  SVC --> ROUTES
+  ROUTES --> JWT
+  ROUTES <--> DB
+  ROUTES --> UP
+  ROUTES --> LLM
+  BLE <--> DEV
+  DEV --> ROUTES:::cb
+  classDef cb fill:#eef,stroke:#88f,stroke-width:1px;
 ```
 
 ## Onboarding Sequence Diagram
