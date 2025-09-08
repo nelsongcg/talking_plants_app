@@ -70,11 +70,12 @@ sequenceDiagram
 
 Below are a few in‑app screenshots:
 
-![Home](images/home.PNG)
-
-![Health](images/health.PNG)
-
-![Stats](images/stats.PNG)
+<p align="center">
+  <img src="images/home.PNG" alt="Home" width="33%" />
+  <img src="images/health.PNG" alt="Health" width="33%" />
+  <img src="images/stats.PNG" alt="Stats" width="33%" />
+  
+</p>
 
 ## Chat
 
