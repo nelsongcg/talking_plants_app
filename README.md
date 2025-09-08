@@ -32,6 +32,7 @@ The Flutter application lets users register and chat with a plant. It communicat
 ```
 lib/                   Flutter source code
 assets/                Images and other bundled assets
+images/                App screenshots used in this README
 qrcodes/               Script and output for device QR codes
 talking-plants-auth/   Node.js backend server
 web/                   Flutter Web build target
@@ -64,6 +65,16 @@ sequenceDiagram
     S-->>A: Ready to chat
     U->>A: Start first chat
 ```
+
+## Screenshots
+
+Below are a few in‑app screenshots:
+
+![Home](images/home.PNG)
+
+![Health](images/health.PNG)
+
+![Stats](images/stats.PNG)
 
 ## Chat
 
