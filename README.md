@@ -74,7 +74,7 @@ flowchart LR
   App -- "BLE Provisioning" --> Dev
   Dev -- "MQTT" --> Dynamo
   MySQL -- "Summrization" --> Qdrant
-  LLM <-- Qdrant
+  Qdrant --> LLM
 ```
 
 ### Chat Flow
