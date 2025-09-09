@@ -42,37 +42,70 @@ android/, linux/, macos/  Platform‑specific Flutter projects
 ## Architecture Diagram
 
 ```mermaid
-graph LR
-  subgraph Client [Flutter App]
-    UI[UI Screens/Widgets]
-    SVC[Auth + Plant Services (Dio)]
-    BLE[BLE Provisioning]
+flowchart LR
+  subgraph Client
+    App[App]
   end
 
-  subgraph Backend [Auth Backend (Express)]
-    JWT[JWT Middleware]
-    ROUTES[Routes: register, login, devices, api]
-    UP[Uploads (/uploads)]
-    DB[(MySQL)]
+  subgraph Cloud
+    WebSrv[Webserver]
   end
 
-  subgraph External
-    LLM[AWS Lambda (mytalkingplant)]
+  subgraph Cloud
+
+  end
+
+  subgraph Cloud
+    Lambda[Lambda]
+    LLM[LLM]
+    MySQL[MySQL]
+    Dynamo[DynamoDB]
+    Qdrant[Qdrant]
   end
 
   subgraph Device
-    DEV[Device]
+    Dev[Device]
   end
 
-  UI <---> SVC
-  SVC --> ROUTES
-  ROUTES --> JWT
-  ROUTES <--> DB
-  ROUTES --> UP
-  ROUTES --> LLM
-  BLE <--> DEV
-  DEV --> ROUTES:::cb
-  classDef cb fill:#eef,stroke:#88f,stroke-width:1px;
+  App -- "HTTPS JWT" <--> WebSrv
+  WebSrv -- "HTTP" <--> Lambda
+  Lambda -- "HTTP" <--> LLM
+  WebSrv -- "SQL Queries" --> MySQL
+  App -- "BLE Provisioning" --> Dev
+  Dev -- "MQTT" --> Dynamo
+  MySQL -- "Summrization" --> Qdrant
+  LLM <-- Qdrant
+```
+
+### Chat Flow
+
+```mermaid
+sequenceDiagram
+  participant A as App
+  participant W as Webserver
+  participant L as Lambda
+  participant M as LLM
+  participant S as MySQL
+
+  A->>W: POST /api/chat (JWT)
+  W->>L: Invoke (payload)
+  L->>M: Prompt
+  M-->>L: Response
+  L-->>W: Reply
+  W-->>A: Reply JSON
+  W->>S: Persist message metadata
+```
+
+### Provisioning & Data
+
+```mermaid
+sequenceDiagram
+  participant A as App
+  participant D as Device
+  participant Dyn as DynamoDB
+
+  A->>D: BLE provisioning (SSID, password)
+  D-->>Dyn: Telemetry and status
 ```
 
 ## Onboarding Sequence Diagram
@@ -185,5 +218,4 @@ erDiagram
 ---
 This repo's most important files are [`lib/main.dart`](lib/main.dart),
 [`lib/services/plant_service.dart`](lib/services/plant_service.dart),
-[`talking-plants-auth/src/index.js`](talking-plants-auth/src/index.js), and
-[`sketch_v2/sketch_v2.ino`](sketch_v2/sketch_v2.ino).
+[`talking-plants-auth/src/index.js`](talking-plants-auth/src/index.js).
