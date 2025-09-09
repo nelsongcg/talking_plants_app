@@ -1,11 +1,13 @@
 # Talking Plants
 
-A playful experiment in giving houseplants a voice. This repo contains:
+A playful experiment in giving houseplants a voice. Users install a device on their plans that serves as a "google translator" for plants. So any person can talk to their plants and understand how they are feeling.
+
+The whole project is composed by device, app and backend. This repo contains both the app and backend code. The device code can be found in this other repo: https://github.com/nelsongcg/talking_plants_device_code/tree/main
+
+This repo contains:
 
 * **Flutter mobile client** – the app in `lib/`, starting at [`lib/main.dart`](lib/main.dart).
 * **talking-plants-auth** – Node.js backend located at [`talking-plants-auth/src/index.js`](talking-plants-auth/src/index.js).
-
-QR codes for devices are generated with [`qrcodes/generateqr.sh`](qrcodes/generateqr.sh).
 
 ## Project Overview
 
