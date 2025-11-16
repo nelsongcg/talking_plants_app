@@ -9,12 +9,14 @@ class ChatPane extends StatelessWidget {
     required this.controller,
     required this.onSend,
     required this.isProcessing,
+    required this.scrollController,
   });
 
-  final List<Msg> messages;              // assume newest at index 0
+  final List<Msg> messages;              // assume oldest → newest order
   final TextEditingController controller;
   final ValueChanged<String> onSend;
   final bool isProcessing;
+  final ScrollController scrollController;
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +33,7 @@ class ChatPane extends StatelessWidget {
             ),
             padding: const EdgeInsets.all(12),
             child: ListView.builder(
-              reverse: true,                      // <-- key line
+              controller: scrollController,
               itemCount: messages.length,
               itemBuilder: (_, i) {
                 final m = messages[i];
@@ -111,7 +113,8 @@ class ChatPane extends StatelessWidget {
 }
 
 class Msg {
-  Msg(this.text, this.isUser);
+  Msg(this.text, this.isUser, this.createdAt);
   final String text;
   final bool isUser;
+  final DateTime createdAt;
 }

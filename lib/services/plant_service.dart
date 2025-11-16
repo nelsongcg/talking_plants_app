@@ -6,7 +6,12 @@ import '../models/daily_reading.dart';
 class ChatMessage {
   final String text;
   final bool isUser;
-  ChatMessage({required this.text, required this.isUser});
+  final DateTime createdAt;
+  ChatMessage({
+    required this.text,
+    required this.isUser,
+    required this.createdAt,
+  });
 }
 
 class PlantService {
@@ -180,14 +185,31 @@ class PlantService {
       throw Exception('Failed to load chat history (${resp.statusCode})');
     }
 
-    // Expect: [ { text: "...", is_user: 1 }, … ]
+    // Expect: [ { text: "...", is_user: 1, created_at: "..." }, … ]
     final data = resp.data as List<dynamic>;
     return data.map((e) {
+      final createdAtRaw = e['created_at'];
+      DateTime createdAt;
+      if (createdAtRaw is String) {
+        createdAt = DateTime.tryParse(createdAtRaw) ??
+            DateTime.fromMillisecondsSinceEpoch(0);
+      } else if (createdAtRaw is int) {
+        createdAt = DateTime.fromMillisecondsSinceEpoch(createdAtRaw);
+      } else if (createdAtRaw is double) {
+        createdAt = DateTime.fromMillisecondsSinceEpoch(
+            createdAtRaw.round());
+      } else if (createdAtRaw is DateTime) {
+        createdAt = createdAtRaw;
+      } else {
+        createdAt = DateTime.fromMillisecondsSinceEpoch(0);
+      }
+
       return ChatMessage(
         text: e['text'] as String,
         isUser: (e['is_user'] is bool)
           ? e['is_user'] as bool
           : (e['is_user'] as int) == 1,
+        createdAt: createdAt,
       );
     }).toList();
   }

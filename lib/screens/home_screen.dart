@@ -54,6 +54,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Msg> _messages = [];
 
   final _controller = TextEditingController();
+  final _chatScrollController = ScrollController();
   String? _deviceId;
   bool _sending = false;
 
@@ -87,13 +88,13 @@ class _HomeScreenState extends State<HomeScreen> {
         deviceId: _deviceId!,
       );
 
-      // server sends oldest-first; we want newest @ index 0
+      history.sort((a, b) => a.createdAt.compareTo(b.createdAt));
       final msgs = history
-          .map((m) => Msg(m.text, m.isUser))
-          .toList()
+          .map((m) => Msg(m.text, m.isUser, m.createdAt))
           .toList();
 
       setState(() => _messages = msgs);
+      _scheduleScrollToBottom(animated: false);
     } catch (e) {
       debugPrint('⚠️ Could not load chat history: $e');
       // _messages stays empty if there's an error or no history
@@ -254,7 +255,25 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     _controller.dispose();
+    _chatScrollController.dispose();
     super.dispose();
+  }
+
+  void _scheduleScrollToBottom({bool animated = true}) {
+    if (!mounted) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_chatScrollController.hasClients) return;
+      final offset = _chatScrollController.position.maxScrollExtent;
+      if (animated) {
+        _chatScrollController.animateTo(
+          offset,
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOut,
+        );
+      } else {
+        _chatScrollController.jumpTo(offset);
+      }
+    });
   }
 
   // ─── send message & fetch reply (unchanged) ───────────────────────────
@@ -269,9 +288,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
     setState(() {
       _sending = true;
-      _messages.insert(0, Msg(message, true));
+      _messages.add(Msg(message, true, DateTime.now()));
       _controller.clear();
     });
+    _scheduleScrollToBottom();
 
     try {
       final auth = AuthService();
@@ -284,11 +304,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
       final reply = r.data['reply'] as String? ?? '';
       if (mounted && reply.isNotEmpty) {
-        setState(() => _messages.insert(0, Msg(reply, false)));
+        setState(() => _messages.add(Msg(reply, false, DateTime.now())));
+        _scheduleScrollToBottom();
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _messages.add(Msg('⚠️ $e', false)));
+        setState(() => _messages.add(Msg('⚠️ $e', false, DateTime.now())));
+        _scheduleScrollToBottom();
       }
     } finally {
       if (mounted) setState(() => _sending = false);
@@ -425,6 +447,7 @@ Future<Map<String, dynamic>> _loadHealthData() async {
               controller: _controller,
               onSend: _sendMessage,
               isProcessing: _sending,
+              scrollController: _chatScrollController,
               key: _chatPaneKey,
             ),
         1 => FutureBuilder<Map<String, dynamic>>(
