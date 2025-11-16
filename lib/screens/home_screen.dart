@@ -87,9 +87,30 @@ class _HomeScreenState extends State<HomeScreen> {
       final history = await PlantService.fetchChatHistory(
         deviceId: _deviceId!,
       );
+      final hasValidTimestamps = history.every(
+        (m) => m.createdAt.millisecondsSinceEpoch != 0,
+      );
+      final hasIds = history.every((m) => m.id != null);
 
-      history.sort((a, b) => a.createdAt.compareTo(b.createdAt));
-      final msgs = history
+      List<ChatMessage> ordered;
+      if (hasValidTimestamps) {
+        ordered = List.of(history)
+          ..sort((a, b) {
+            final cmp = a.createdAt.compareTo(b.createdAt);
+            if (cmp != 0) return cmp;
+            if (a.id != null && b.id != null && hasIds) {
+              return a.id!.compareTo(b.id!);
+            }
+            return 0;
+          });
+      } else if (hasIds) {
+        ordered = List.of(history)
+          ..sort((a, b) => a.id!.compareTo(b.id!));
+      } else {
+        ordered = history.reversed.toList();
+      }
+
+      final msgs = ordered
           .map((m) => Msg(m.text, m.isUser, m.createdAt))
           .toList();
 

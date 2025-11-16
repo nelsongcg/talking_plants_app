@@ -829,16 +829,17 @@ app.get('/api/chat/history', verifyJwtMiddleware, async (req, res) => {
 
     // 2) Fetch last 10 messages for this user+plant
     const [rows] = await pool.query(
-      `SELECT message_text, role, created_at
+      `SELECT id, message_text, role, created_at
          FROM messages
         WHERE user_id = ? AND plant_id = ?
-        ORDER BY created_at DESC
+        ORDER BY created_at DESC, id DESC
         LIMIT 10`,
       [userId, plantId]
     );
 
     // 3) Map DB rows into { text, is_user } for your Flutter client
     const history = rows.map(r => ({
+      id: r.id,
       text:    r.message_text,
       is_user: r.role === 'caretaker',   // caretaker → user; plant → bot
       created_at: r.created_at ? new Date(r.created_at).toISOString() : null,

@@ -4,10 +4,12 @@ import 'package:talking_plants/services/auth_service.dart'; // your AuthService
 import '../models/daily_reading.dart';
 
 class ChatMessage {
+  final int? id;
   final String text;
   final bool isUser;
   final DateTime createdAt;
   ChatMessage({
+    required this.id,
     required this.text,
     required this.isUser,
     required this.createdAt,
@@ -188,6 +190,14 @@ class PlantService {
     // Expect: [ { text: "...", is_user: 1, created_at: "..." }, … ]
     final data = resp.data as List<dynamic>;
     return data.map((e) {
+      final rawId = e['id'];
+      int? id;
+      if (rawId is int) {
+        id = rawId;
+      } else if (rawId is String) {
+        id = int.tryParse(rawId);
+      }
+
       final createdAtRaw = e['created_at'];
       DateTime createdAt;
       if (createdAtRaw is String) {
@@ -205,6 +215,7 @@ class PlantService {
       }
 
       return ChatMessage(
+        id: id,
         text: e['text'] as String,
         isUser: (e['is_user'] is bool)
           ? e['is_user'] as bool
