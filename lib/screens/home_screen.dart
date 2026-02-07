@@ -56,6 +56,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final _controller = TextEditingController();
   final _chatScrollController = ScrollController();
   String? _deviceId;
+  String? _photoUrl;
   bool _sending = false;
 
   // ─── Chart state ──────────────────────────────────────────────────────
@@ -75,10 +76,22 @@ class _HomeScreenState extends State<HomeScreen> {
     if (_deviceId != null) {
       // Fire the request (and keep the Future so UI can listen)
       _streakFuture = PlantService.fetchCurrentStreak(_deviceId!);
+      _loadPlantPhoto();
       _loadChatHistory();
       await _checkTutorial();
     }
     setState(() {});
+  }
+
+  Future<void> _loadPlantPhoto() async {
+    if (_deviceId == null) return;
+    try {
+      final url = await PlantService.fetchPlantPhotoUrl(_deviceId!);
+      if (!mounted) return;
+      setState(() => _photoUrl = url);
+    } catch (e) {
+      debugPrint('⚠️ Could not load plant photo: $e');
+    }
   }
   /// Pulls chat history from server and updates [_messages].
   Future<void> _loadChatHistory() async {
@@ -408,6 +421,7 @@ Future<Map<String, dynamic>> _loadHealthData() async {
             _Header(
               onBurgerTap: () => _scaffoldKey.currentState?.openEndDrawer(),
               burgerKey: _burgerKey,
+              photoUrl: _photoUrl,
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -546,12 +560,36 @@ Future<Map<String, dynamic>> _loadHealthData() async {
 
 // ─── HEADER widget (unchanged) ─────────────────────────────────────────
 class _Header extends StatelessWidget {
-  const _Header({required this.onBurgerTap, this.burgerKey});
+  const _Header({required this.onBurgerTap, this.burgerKey, this.photoUrl});
   final VoidCallback? onBurgerTap;
   final Key? burgerKey;
+  final String? photoUrl;
 
   @override
   Widget build(BuildContext context) {
+    final headerImage = photoUrl == null
+        ? Center(
+            child: Image.asset(
+              'assets/images/gajumaru_v1.png',
+              height: 115,
+              fit: BoxFit.contain,
+            ),
+          )
+        : FadeInImage.assetNetwork(
+            placeholder: 'assets/images/gajumaru_v1.png',
+            image: photoUrl!,
+            fit: BoxFit.cover,
+            width: 160,
+            height: 160,
+            imageErrorBuilder: (_, __, ___) => Center(
+              child: Image.asset(
+                'assets/images/gajumaru_v1.png',
+                height: 115,
+                fit: BoxFit.contain,
+              ),
+            ),
+          );
+
     return Stack(
       children: [
         Align(
@@ -565,12 +603,7 @@ class _Header extends StatelessWidget {
               color: Colors.white.withOpacity(.9),
               width: 160,
               height: 160,
-              alignment: Alignment.bottomCenter,
-              child: Image.asset(
-                'assets/images/gajumaru_v1.png',
-                height: 115,
-                fit: BoxFit.contain,
-              ),
+              child: headerImage,
             ),
           ),
         ),

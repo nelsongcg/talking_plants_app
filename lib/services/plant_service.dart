@@ -49,10 +49,39 @@ class PlantService {
       throw Exception('Unexpected payload: not a List');
     }
 
-    return data
-        .cast<Map<String, dynamic>>()
-        .map((json) => DailyReading.fromJson(json))
-        .toList();
+    final readings = <DailyReading>[];
+    const requiredKeys = [
+      'date',
+      'luminosity',
+      'night_hours',
+      'soil_moisture',
+      'day_temperature',
+      'night_temperature',
+      'relative_humidity',
+    ];
+
+    for (final raw in data.cast<Map<String, dynamic>>()) {
+      final hasAllKeys = requiredKeys.every(raw.containsKey);
+      if (!hasAllKeys) continue;
+
+      final numsOk = [
+        raw['luminosity'],
+        raw['night_hours'],
+        raw['soil_moisture'],
+        raw['day_temperature'],
+        raw['night_temperature'],
+        raw['relative_humidity'],
+      ].every((v) => v is num);
+      if (!numsOk) continue;
+
+      try {
+        readings.add(DailyReading.fromJson(raw));
+      } catch (_) {
+        // Skip malformed rows instead of failing the whole chart.
+      }
+    }
+
+    return readings;
   }
 
   /// Fetch the latest plant health JSON, status_checked, and streak_claimed.
@@ -168,6 +197,49 @@ class PlantService {
       options: Options(headers: {'Authorization': 'Bearer $jwt'}),
     );
     return resp.data['current_streak'] as int;
+  }
+
+  static String _resolveApiUrl(String urlOrPath) {
+    if (urlOrPath.startsWith('http://') || urlOrPath.startsWith('https://')) {
+      return urlOrPath;
+    }
+    final base = dio.options.baseUrl;
+    if (base.isEmpty) return urlOrPath;
+    return Uri.parse(base).resolve(urlOrPath).toString();
+  }
+
+  /// Fetch the plant photo URL for the given device (if available).
+  static Future<String?> fetchPlantPhotoUrl(String deviceId) async {
+    final jwt = await AuthService().getJwt();
+    if (jwt == null) {
+      throw Exception('No JWT found; user is not authenticated.');
+    }
+
+    final resp = await dio.get(
+      '/api/devices',
+      options: Options(headers: {'Authorization': 'Bearer $jwt'}),
+    );
+
+    if (resp.statusCode != 200) {
+      throw Exception(
+        'Failed to load devices (status ${resp.statusCode}): ${resp.data}',
+      );
+    }
+
+    final data = resp.data;
+    if (data is! List) {
+      throw Exception('Unexpected payload: not a List');
+    }
+
+    for (final raw in data) {
+      if (raw is Map<String, dynamic> && raw['device_id'] == deviceId) {
+        final url = raw['photo_url'] as String?;
+        if (url == null || url.isEmpty) return null;
+        return _resolveApiUrl(url);
+      }
+    }
+
+    return null;
   }
 
   /// Fetch the full chat history for this plant (user inferred by JWT).
